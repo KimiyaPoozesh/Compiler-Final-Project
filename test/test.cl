@@ -1,7 +1,7 @@
-void myFunction(int myNumber[5], char isOdd){
+void myFunction(){
     int abcd =2;
     for(int i=0; i<5; i++){
-
+    int eee;
         if (isOdd == 'y'){
             int bbb = 23;
 
