@@ -13,7 +13,9 @@ public class ProgramPrinter implements CListener {
     public static int entry = 0;
     public static String tab = "    ";
     public static int tabCount = 0;
+    public static String[] functions = new String[10];
 
+    public static String funcName=null;
     // repeat a given word count time
     public static String repeat(int count, String word) {
         return new String(new char[count]).replace("\0", word);
@@ -52,10 +54,40 @@ public class ProgramPrinter implements CListener {
     public void exitPrimaryExpression(CParser.PrimaryExpressionContext ctx) {
 
     }
-
+    public static boolean contains(String[] array, String target) {
+        for (String s : array) {
+            if (s != null && s.equals(target)) {
+                return true;
+            }
+        }
+        return false;
+    }
     @Override
     public void enterPostfixExpression(CParser.PostfixExpressionContext ctx) {
+        String nTab = repeat(tabCount+1, tab);
+        if(funcName!=null) {
+            String params=null;
+            CParser.PrimaryExpressionContext temp = ctx.primaryExpression();
+            if(temp.Identifier()!=null){
+                params=temp.Identifier().getText();
+                if(!contains(functions, params))
+                    System.out.println(nTab+"function call: "+funcName+"/ params: "+params);
+            }
 
+        }
+        if(ctx.LeftParen()!=null){
+            if(ctx.argumentExpressionList()!=null){
+                CParser.PrimaryExpressionContext temp = ctx.primaryExpression();
+                if(temp.Identifier()!=null){
+                    if(contains(functions, temp.Identifier().getText())) {
+                        funcName = temp.Identifier().getText();
+                    }
+                }
+            }
+        }
+
+
+//        System.out.println("function call: "+funcName+"/ params: ");
     }
 
     @Override
@@ -670,26 +702,38 @@ public class ProgramPrinter implements CListener {
         String field = null;
         int length = 0;
         List<CParser.BlockItemContext> blockItemList = ctx.blockItem();
+
         for (CParser.BlockItemContext blockItem : blockItemList) {
             if (blockItem.declaration() != null) {
+
                 tabCount++;
                 String nTab = repeat(tabCount, tab);
                 List<CParser.DeclarationSpecifierContext> declSpecCtxList = blockItem.declaration().declarationSpecifiers().declarationSpecifier();
                 fieldType = getType(declSpecCtxList);
-                List<CParser.InitDeclaratorContext> initDeclaratorList = blockItem.declaration().initDeclaratorList().initDeclarator();
-                for (CParser.InitDeclaratorContext initDeclarator : initDeclaratorList) {
+                if (blockItem.declaration().initDeclaratorList() != null) {
+                    List<CParser.InitDeclaratorContext> initDeclaratorList = blockItem.declaration().initDeclaratorList().initDeclarator();
+                    CParser.InitDeclaratorContext initDeclarator = initDeclaratorList.get(0);
                     field = initDeclarator.declarator().directDeclarator().Identifier().getText();
-                    List<CParser.InitializerContext> initializerList = initDeclarator.initializer().initializerList().initializer();
-                    length = initializerList.size();
-                    break;
+                    if (initDeclarator.declarator().directDeclarator().LeftBracket().size() > 0) {
+                        length = Integer.parseInt(initDeclarator.declarator().directDeclarator().Constant().get(0).getText());
+                    }
+                } else {
+                    field = blockItem.declaration().declarationSpecifiers().declarationSpecifier().get(1).getText();
                 }
 
-                System.out.println(nTab + "field: " + field + "/ type: " + fieldType + "/ length: " + length);
-                tabCount--;
-                break;
-//            } else if (blockItem.statement() != null) {
-//                CParser.ExpressionContext functionName = blockItem.statement().expressionStatement().expression();
+                if (length != 0) {
+                    System.out.println(nTab + "field: " + field + "/ type: " + fieldType+ "/ length: " + length);
+                    tabCount--;
+
+                }
+                else {
+                    System.out.println(nTab + "field: " + field + "/ type: " + fieldType);
+                    tabCount--;
+
+                }
             }
+
+
         }
 
 
@@ -829,28 +873,38 @@ public class ProgramPrinter implements CListener {
         }
         //function CALL
         String name = ctx.declarator().directDeclarator().directDeclarator().Identifier().getText();
-        List<CParser.ParameterDeclarationContext> params = ctx.declarator().directDeclarator().parameterTypeList().parameterList().parameterDeclaration();
         System.out.println(nTab + "normal method: name: " + name + "/ return type: " + fieldType + "{");
-        //fin PARAMETERS
-        for (CParser.ParameterDeclarationContext param : params) {
-            getParamameters(param);
+        if(ctx.declarator().directDeclarator().parameterTypeList()!=null) {
+            List<CParser.ParameterDeclarationContext> params = ctx.declarator().directDeclarator().parameterTypeList().parameterList().parameterDeclaration();
+            for (int i = 0; i < functions.length; i++) {
+                if (functions[i] == null) {
+                    functions[i] = name;
+
+                    break;
+                }
+            }
+            //fin PARAMETERS
+            StringBuilder paramsString = new StringBuilder();
+            for (CParser.ParameterDeclarationContext param : params) {
+                String paramName = param.declarator().directDeclarator().Identifier().getText();
+                List<CParser.DeclarationSpecifierContext> paramdec = param.declarationSpecifiers().declarationSpecifier();
+                String paramType = getType(paramdec);
+                paramsString.append(paramName + " " + paramType + ", ");
+
+            }
+            // Remove the last ", " from the string
+            paramsString.setLength(paramsString.length() - 2);
+            tabCount++;
+            System.out.println(repeat(tabCount, tab) + "parameter list: [" + paramsString.toString() + "]");
+            tabCount--;
         }
 
 
+
+
+
     }
 
-    public void getParamameters(CParser.ParameterDeclarationContext param) {
-        StringBuilder paramsString = new StringBuilder();
-        String paramName = param.declarator().directDeclarator().Identifier().getText();
-        List<CParser.DeclarationSpecifierContext> paramdec = param.declarationSpecifiers().declarationSpecifier();
-        String paramType = getType(paramdec);
-        paramsString.append(paramName + " " + paramType + ", ");
-        // Remove the last ", " from the string
-        paramsString.setLength(paramsString.length() - 2);
-        tabCount++;
-        System.out.println(repeat(tabCount, tab) + "parameter list: [" + paramsString.toString() + "]");
-        tabCount--;
-    }
 
     @Override
     public void exitFunctionDefinition(CParser.FunctionDefinitionContext ctx) {

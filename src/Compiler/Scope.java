@@ -37,11 +37,47 @@ public class Scope {
         return hashtable.get(idefName);
     }
 
+    public boolean Contain(String idefName) {
+        Scope scope = this;
+        while (scope != null) {
+            if (scope.type != Type.PROGRAM) {
+                for (Scope scope1 : scope.getChildern()) {
+                    if (scope1.lookup(idefName) != null) {
+                        return true;
+                    }
+                }
+            }
+            if (scope.lookup(idefName) != null) {
+                return true;
+            }
+            scope = scope.parent;
+        }
+        return false;
+    }
+
+    public String getFieldType(String idefName) {
+        Scope scope = this;
+        while (scope != null) {
+            if (scope.type != Type.PROGRAM) {
+                for (Scope scope1 : scope.getChildern()) {
+                    if (scope1.lookup(idefName) != null) {
+                        return scope1.lookup(idefName).type;
+                    }
+                }
+            }
+            if (scope.lookup(idefName) != null) {
+                return scope.lookup(idefName).type;
+            }
+            scope = scope.parent;
+        }
+        return null;
+    }
+
     public String getName() {
         return name;
     }
 
-    public Type getType() {
+    public Type getFieldType() {
         return type;
     }
 
@@ -65,6 +101,9 @@ public class Scope {
             itemsStr += "Key = " + entry.getKey() + " | Value = " + entry.getValue() + "\n";
         }
         return itemsStr;
+    }
 
+    public LinkedHashMap<String, SymbolTableItem> getHashtable() {
+        return hashtable;
     }
 }
