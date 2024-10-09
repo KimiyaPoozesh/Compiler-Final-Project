@@ -22,7 +22,7 @@ public class Compiler {
         parser.setBuildParseTree(true);
         ParseTree tree = parser.externalDeclaration();
         ParseTreeWalker walker = new ParseTreeWalker();
-        CListener listener = new ProgramPrinter();
+        CListener listener = new ProgramPrinter2();
 
         walker.walk(listener,tree);
     }

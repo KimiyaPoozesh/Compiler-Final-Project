@@ -10,14 +10,16 @@ import java.util.List;
 
 public class ProgramPrinter implements CListener {
     public static int nested = 0;
-    public static int entry=0;
+    public static int entry = 0;
     public static String tab = "    ";
-    public static int tabCount= 0;
+    public static int tabCount = 0;
+
     // repeat a given word count time
     public static String repeat(int count, String word) {
         return new String(new char[count]).replace("\0", word);
     }
-    public String getType(List<CParser.DeclarationSpecifierContext> declSpecCtxList){
+
+    public String getType(List<CParser.DeclarationSpecifierContext> declSpecCtxList) {
         String fieldType = null;
 
         for (CParser.DeclarationSpecifierContext declSpecCtx : declSpecCtxList) {
@@ -39,6 +41,7 @@ public class ProgramPrinter implements CListener {
     public void exitExternalDeclaration(CParser.ExternalDeclarationContext ctx) {
         System.out.println("}");
     }
+
     @Override
     public void enterPrimaryExpression(CParser.PrimaryExpressionContext ctx) {
 
@@ -663,32 +666,31 @@ public class ProgramPrinter implements CListener {
     @Override
     public void enterBlockItemList(CParser.BlockItemListContext ctx) {
 
-        String fieldType=null;
-        String field=null;
-        int length=0;
+        String fieldType = null;
+        String field = null;
+        int length = 0;
         List<CParser.BlockItemContext> blockItemList = ctx.blockItem();
         for (CParser.BlockItemContext blockItem : blockItemList) {
             if (blockItem.declaration() != null) {
                 tabCount++;
-                String nTab=repeat(tabCount,tab);
+                String nTab = repeat(tabCount, tab);
                 List<CParser.DeclarationSpecifierContext> declSpecCtxList = blockItem.declaration().declarationSpecifiers().declarationSpecifier();
                 fieldType = getType(declSpecCtxList);
-                List<CParser.InitDeclaratorContext> initDeclaratorList= blockItem.declaration().initDeclaratorList().initDeclarator();
-                for(CParser.InitDeclaratorContext initDeclarator : initDeclaratorList){
-                    field= initDeclarator.declarator().directDeclarator().Identifier().getText();
+                List<CParser.InitDeclaratorContext> initDeclaratorList = blockItem.declaration().initDeclaratorList().initDeclarator();
+                for (CParser.InitDeclaratorContext initDeclarator : initDeclaratorList) {
+                    field = initDeclarator.declarator().directDeclarator().Identifier().getText();
                     List<CParser.InitializerContext> initializerList = initDeclarator.initializer().initializerList().initializer();
-                    length=initializerList.size();
+                    length = initializerList.size();
                     break;
                 }
 
-                System.out.println(nTab+"field: "+field+"/ type: "+fieldType+"/ length: "+length);
+                System.out.println(nTab + "field: " + field + "/ type: " + fieldType + "/ length: " + length);
                 tabCount--;
                 break;
+//            } else if (blockItem.statement() != null) {
+//                CParser.ExpressionContext functionName = blockItem.statement().expressionStatement().expression();
             }
-            else if(blockItem.statement()!=null){
-                CParser.ExpressionContext functionName = blockItem.statement().expressionStatement().expression();
-            }
-    }
+        }
 
 
     }
@@ -720,28 +722,27 @@ public class ProgramPrinter implements CListener {
 
     @Override
     public void enterSelectionStatement(CParser.SelectionStatementContext ctx) {
-        if(nested>=1){
+        if (nested >= 1) {
             entry++;
             tabCount++;
-            String nTab=repeat(tabCount,tab);
-            System.out.println(nTab+"nested statement: {");
+            String nTab = repeat(tabCount, tab);
+            System.out.println(nTab + "nested statement: {");
 
-        }
-        else{
+        } else {
             nested++;
         }
     }
 
     @Override
     public void exitSelectionStatement(CParser.SelectionStatementContext ctx) {
-        if(entry>=1) {
+        if (entry >= 1) {
             entry--;
             String nTab = repeat(tabCount, tab);
             System.out.println(nTab + "}");
             nested--;
             tabCount--;
-            if(entry==0){
-                nested=0;
+            if (entry == 0) {
+                nested = 0;
             }
         }
 
@@ -749,28 +750,27 @@ public class ProgramPrinter implements CListener {
 
     @Override
     public void enterIterationStatement(CParser.IterationStatementContext ctx) {
-        if(nested>=1){
+        if (nested >= 1) {
             entry++;
             tabCount++;
-            String nTab=repeat(tabCount,tab);
-            System.out.println(nTab+"nested statement: {");
+            String nTab = repeat(tabCount, tab);
+            System.out.println(nTab + "nested statement: {");
 
-        }
-        else{
+        } else {
             nested++;
         }
     }
 
     @Override
     public void exitIterationStatement(CParser.IterationStatementContext ctx) {
-        if(entry>=1) {
+        if (entry >= 1) {
             entry--;
             String nTab = repeat(tabCount, tab);
             System.out.println(nTab + "}");
             tabCount--;
             nested--;
-            if(entry==0){
-                nested=0;
+            if (entry == 0) {
+                nested = 0;
             }
         }
 
@@ -817,47 +817,45 @@ public class ProgramPrinter implements CListener {
     }
 
 
-
     @Override
     public void enterFunctionDefinition(CParser.FunctionDefinitionContext ctx) {
         tabCount++;
 
-        String nTab=repeat(tabCount,tab);
+        String nTab = repeat(tabCount, tab);
         List<CParser.DeclarationSpecifierContext> declSpecCtxList = ctx.declarationSpecifiers().declarationSpecifier();
-        String fieldType=getType(declSpecCtxList);
-        if(fieldType==null || fieldType=="void"){
-            fieldType="void(no return)";
+        String fieldType = getType(declSpecCtxList);
+        if (fieldType == null || fieldType == "void") {
+            fieldType = "void(no return)";
         }
         //function CALL
-        String name= ctx.declarator().directDeclarator().directDeclarator().Identifier().getText();
-        List<CParser.ParameterDeclarationContext> params= ctx.declarator().directDeclarator().parameterTypeList().parameterList().parameterDeclaration();
-        System.out.println(nTab+"normal method: name: "+name+"/ return type: "+fieldType+"{");
+        String name = ctx.declarator().directDeclarator().directDeclarator().Identifier().getText();
+        List<CParser.ParameterDeclarationContext> params = ctx.declarator().directDeclarator().parameterTypeList().parameterList().parameterDeclaration();
+        System.out.println(nTab + "normal method: name: " + name + "/ return type: " + fieldType + "{");
         //fin PARAMETERS
-        for(CParser.ParameterDeclarationContext param:params){
+        for (CParser.ParameterDeclarationContext param : params) {
             getParamameters(param);
         }
 
 
-
     }
 
-    public void getParamameters(CParser.ParameterDeclarationContext param){
+    public void getParamameters(CParser.ParameterDeclarationContext param) {
         StringBuilder paramsString = new StringBuilder();
-        String paramName=param.declarator().directDeclarator().Identifier().getText();
-        List<CParser.DeclarationSpecifierContext> paramdec= param.declarationSpecifiers().declarationSpecifier();
-        String paramType =getType(paramdec);
+        String paramName = param.declarator().directDeclarator().Identifier().getText();
+        List<CParser.DeclarationSpecifierContext> paramdec = param.declarationSpecifiers().declarationSpecifier();
+        String paramType = getType(paramdec);
         paramsString.append(paramName + " " + paramType + ", ");
         // Remove the last ", " from the string
         paramsString.setLength(paramsString.length() - 2);
         tabCount++;
-        System.out.println(repeat(tabCount,tab) + "parameter list: [" + paramsString.toString() + "]");
+        System.out.println(repeat(tabCount, tab) + "parameter list: [" + paramsString.toString() + "]");
         tabCount--;
     }
 
     @Override
     public void exitFunctionDefinition(CParser.FunctionDefinitionContext ctx) {
-        String nTab=repeat(tabCount,tab);
-        System.out.println(nTab+"}");
+        String nTab = repeat(tabCount, tab);
+        System.out.println(nTab + "}");
         tabCount--;
     }
 
@@ -865,14 +863,14 @@ public class ProgramPrinter implements CListener {
     @Override
     public void enterMainfunctionDefinition(CParser.MainfunctionDefinitionContext ctx) {
         tabCount++;
-        String nTab=repeat(tabCount,tab);
+        String nTab = repeat(tabCount, tab);
         //for the type
         List<CParser.DeclarationSpecifierContext> declSpecCtxList = ctx.declarationSpecifiers().declarationSpecifier();
-        String fieldType=getType(declSpecCtxList);
-        if(fieldType==null || fieldType=="void"){
-            fieldType="void(no return)";
+        String fieldType = getType(declSpecCtxList);
+        if (fieldType == null || fieldType == "void") {
+            fieldType = "void(no return)";
         }
-        System.out.println(nTab+"main method: return type: "+fieldType+"{");
+        System.out.println(nTab + "main method: return type: " + fieldType + "{");
 
 
     }
@@ -880,8 +878,8 @@ public class ProgramPrinter implements CListener {
     @Override
     public void exitMainfunctionDefinition(CParser.MainfunctionDefinitionContext ctx) {
 
-        String nTab=repeat(tabCount,tab);
-        System.out.println(nTab+"}");
+        String nTab = repeat(tabCount, tab);
+        System.out.println(nTab + "}");
         tabCount--;
     }
 
