@@ -213,9 +213,9 @@ typeQualifier
 declarator
     :   pointer? directDeclarator
     ;
-    maindeclarator
-        :   pointer? maindirectDeclarator
-        ;
+maindeclarator
+    :   pointer? maindirectDeclarator
+    ;
 
 directDeclarator
     :   Identifier (LeftBracket Constant* RightBracket)*
